@@ -13,4 +13,81 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Partenaire {
+  partenaire_id Int      @id @default(autoincrement())
+  nom           String
 
+  produits      Produit[]
+}
+
+model Produit {
+  produit_id  Int       @id @default(autoincrement())
+  nom         String
+  contenance  Int
+  unite       String
+  partenaire  Partenaire @relation(fields: [partenaire_id], references: [partenaire_id])
+  partenaire_id Int
+  stocks      Stock[]
+  livraisonProduits LivraisonProduit[]
+}
+
+model Utilisateur {
+  utilisateur_id Int       @id @default(autoincrement())
+  nom            String
+  type           UtilisateurType
+
+  livraisons     Livraison[]
+}
+
+model Bar {
+  bar_id Int     @id @default(autoincrement())
+  nom    String
+
+  stocks      Stock[]
+  livraisons  Livraison[]
+}
+
+model Stock {
+  bar_id    Int
+  produit_id Int
+  quantite  Int      @default(0)
+
+  bar      Bar      @relation(fields: [bar_id], references: [bar_id])
+  produit  Produit  @relation(fields: [produit_id], references: [produit_id])
+
+  @@id([bar_id, produit_id])
+}
+
+model Livraison {
+  livraison_id   Int          @id @default(autoincrement())
+  utilisateur_id Int
+  bar_id         Int
+  statut         LivraisonStatut @default(en_attente_de_reponse)
+  date_livraison DateTime
+
+  utilisateur    Utilisateur @relation(fields: [utilisateur_id], references: [utilisateur_id])
+  bar            Bar         @relation(fields: [bar_id], references: [bar_id])
+  produits       LivraisonProduit[]
+}
+
+model LivraisonProduit {
+  livraison_produit_id Int     @id @default(autoincrement())
+  livraison_id         Int
+  produit_id           Int
+  quantite             Int
+
+  livraison            Livraison @relation(fields: [livraison_id], references: [livraison_id])
+  produit              Produit   @relation(fields: [produit_id], references: [produit_id])
+}
+
+enum UtilisateurType {
+  barman
+  livreur
+}
+
+enum LivraisonStatut {
+  prise_en_charge
+  livre
+  refusee
+  en_attente_de_reponse
+}
